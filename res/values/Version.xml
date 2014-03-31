@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="VersionID">2014.3.6</string>
+    <string name="APKURL">http://www.sharpscouter.com/SHARPScout.apk</string>
+    <string name="VersionDate">2014-03-23</string>
+    <string name="dev_email">frc3260@gmail.com</string>
+</resources>

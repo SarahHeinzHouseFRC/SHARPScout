@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <ListPreference
+        android:defaultValue="Red"
+        android:dialogTitle="Alliance"
+        android:entries="@array/alliances"
+        android:entryValues="@array/alliances"
+        android:key="alliancePref"
+        android:summary="Select Alliance"
+        android:title="Alliance"/>
+
+    <ListPreference
+        android:dialogTitle="Event"
+        android:entries="@array/Events"
+        android:entryValues="@array/Events"
+        android:key="eventPref"
+        android:summary="Select the current Event"
+        android:title="Event" />
+
+    <Preference android:title="Refresh Events"
+                android:key="refreshEventsButton"
+                android:summary="Refreshes Events List"/>
+
+    <EditTextPreference
+        android:inputType="textUri"
+        android:key="databaseURLPref"
+        android:summary="Enter the URL for the server"
+        android:title="Server Address" />
+    <EditTextPreference
+        android:inputType="textPassword"
+        android:key="passPref"
+        android:summary="Enter the password for the server"
+        android:title="Password" />
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:enabled="true"
+        android:key="enableSyncPref"
+        android:summary="Automatically sync with server?"
+        android:title="Auto Sync" />
+
+    <ListPreference
+        android:defaultValue="1 Minute"
+        android:dialogTitle="Auto Sync Frequency"
+        android:entries="@array/autoSyncTimes"
+        android:entryValues="@array/autoSyncTimes"
+        android:key="syncFreqPref"
+        android:summary="Select how often the app should sync"
+        android:title="Auto Sync Frequency" />
+
+    <Preference android:title="Delete SQLite DB"
+                android:key="deleteSQLiteButton"
+                android:summary="Deletes database. Only use this to update to a newer version's database."/>
+
+</PreferenceScreen>

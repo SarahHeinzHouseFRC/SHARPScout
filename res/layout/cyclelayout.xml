@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/cyclesLayout"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical"
+              android:visibility="visible"
+              android:paddingLeft="5dp"
+              android:paddingRight="5dp">
+
+    <ScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/scrollView">
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                          android:orientation="horizontal">
+
+                <LinearLayout
+                        android:id="@+id/team1Cycle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team1FarPoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/redbackground"
+                            android:onClick="onPoss"/>
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team1WhitePoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/whitebackground"
+                            android:onClick="onPoss"
+                            android:textColor="@color/black"/>
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team1NearPoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bluebackground"
+                            android:onClick="onPoss"/>
+
+                    <ToggleButton
+                            android:id="@+id/team1Truss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onTruss"
+                            android:textOff="Truss"
+                            android:textOn="Truss"/>
+
+                    <ToggleButton
+                            android:id="@+id/team1Catch"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:enabled="false"
+                            android:onClick="onCatch"
+                            android:textOff="Catch"
+                            android:textOn="Catch"/>
+
+                    <ToggleButton
+                            android:id="@+id/team1HighScore"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onHigh"
+                            android:textOff="High"
+                            android:textOn="High"/>
+
+                    <ToggleButton
+                            android:id="@+id/team1LowScore"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onLow"
+                            android:textOff="Low"
+                            android:textOn="Low"/>
+
+                    <Button
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Add Miss"
+                            android:onClick="addTeam1Miss"
+                            android:id="@+id/team1Miss" android:layout_gravity="center"
+                            android:singleLine="false"/>
+                </LinearLayout>
+                <!-- /team1Cycle -->
+
+                <View
+                        android:layout_width="2dp"
+                        android:layout_height="0dp"/>
+
+                <LinearLayout
+                        android:id="@+id/team2Cycle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team2FarPoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/redbackground"
+                            android:onClick="onPoss"/>
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team2WhitePoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/whitebackground"
+                            android:onClick="onPoss"
+                            android:textColor="@color/black"/>
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team2NearPoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bluebackground"
+                            android:onClick="onPoss"/>
+
+                    <ToggleButton
+                            android:id="@+id/team2Truss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onTruss"
+                            android:textOff="Truss"
+                            android:textOn="Truss"/>
+
+                    <ToggleButton
+                            android:id="@+id/team2Catch"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:enabled="false"
+                            android:onClick="onCatch"
+                            android:textOff="Catch"
+                            android:textOn="Catch"/>
+
+                    <ToggleButton
+                            android:id="@+id/team2HighScore"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onHigh"
+                            android:textOff="High"
+                            android:textOn="High"/>
+
+                    <ToggleButton
+                            android:id="@+id/team2LowScore"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onLow"
+                            android:textOff="Low"
+                            android:textOn="Low"/>
+
+                    <Button
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Add Miss"
+                            android:onClick="addTeam2Miss"
+                            android:id="@+id/team2Miss"/>
+                </LinearLayout>
+                <!-- /team2Cycle -->
+
+                <View
+                        android:layout_width="2dp"
+                        android:layout_height="0dp"/>
+
+                <LinearLayout
+                        android:id="@+id/team3Cycle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team3FarPoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/redbackground"
+                            android:onClick="onPoss"/>
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team3WhitePoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/whitebackground"
+                            android:onClick="onPoss"
+                            android:textColor="@color/black"/>
+
+                    <View
+                            android:layout_width="0dp"
+                            android:layout_height="2dp"/>
+
+                    <Button
+                            android:id="@+id/team3NearPoss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bluebackground"
+                            android:onClick="onPoss"/>
+
+                    <ToggleButton
+                            android:id="@+id/team3Truss"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onTruss"
+                            android:textOff="Truss"
+                            android:textOn="Truss"/>
+
+                    <ToggleButton
+                            android:id="@+id/team3Catch"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:enabled="false"
+                            android:onClick="onCatch"
+                            android:textOff="Catch"
+                            android:textOn="Catch"/>
+
+                    <ToggleButton
+                            android:id="@+id/team3HighScore"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onHigh"
+                            android:textOff="High"
+                            android:textOn="High"/>
+
+                    <ToggleButton
+                            android:id="@+id/team3LowScore"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:onClick="onLow"
+                            android:textOff="Low"
+                            android:textOn="Low"/>
+
+                    <Button
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Add Miss"
+                            android:onClick="addTeam3Miss"
+                            android:id="@+id/team3Miss"
+                            android:singleLine="false"/>
+
+                </LinearLayout>
+                <!-- /team3Cycle -->
+            </LinearLayout>
+            <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true">
+                <Button
+                        android:id="@+id/lastCycleB"
+                        android:layout_width="fill_parent"
+                        android:layout_height="50dp"
+                        android:enabled="false"
+                        android:gravity="center"
+                        android:onClick="lastCycle"
+                        android:text="Last" android:layout_weight="1"/>
+                <TextView
+                        android:id="@+id/cycleText"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:text="1" android:layout_weight="1" android:textSize="25dp"/>
+                <Button
+                        android:id="@+id/nextCycleB"
+                        android:layout_width="fill_parent"
+                        android:layout_height="50dp"
+                        android:gravity="center"
+                        android:onClick="nextCycle"
+                        android:text="Next" android:layout_weight="1"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.SparseArray;
 import android.widget.Toast;
 import org.acra.ACRA;
 import org.frc3260.aerialassist.*;
@@ -21,7 +22,7 @@ import java.util.*;
 
 public class DB
 {
-	public static final boolean debug = false ;
+	public static final boolean debug = false;
 
 	private HttpUtils utils;
 	private String password;
@@ -37,10 +38,7 @@ public class DB
 		utils = new HttpUtils();
 		password = pass;
 		this.context = context;
-		if(ScoutingDBHelper.helper == null)
-		{
-			ScoutingDBHelper.helper = new ScoutingDBHelper(context.getApplicationContext());
-		}
+		ScoutingDBHelper.getInstance(context.getApplicationContext());
 		this.binder = binder;
 	}
 
@@ -49,10 +47,7 @@ public class DB
 		this.context = context;
 		utils = new HttpUtils();
 		password = Prefs.getSavedPassword(context);
-		if(ScoutingDBHelper.helper == null)
-		{
-			ScoutingDBHelper.helper = new ScoutingDBHelper(context.getApplicationContext());
-		}
+		ScoutingDBHelper.getInstance(context.getApplicationContext());
 		this.binder = binder;
 	}
 
@@ -96,166 +91,162 @@ public class DB
 		}
 	}
 
-	private void insertOrUpdate(SQLiteDatabase db, String table,
-								String nullColumnHack, ContentValues values, String idColumnName,
-								String whereClause, String[] whereArgs)
+	private void insertOrUpdate(String table, String nullColumnHack, ContentValues values, String idColumnName, String whereClause, String[] whereArgs)
 	{
-		String[] projection = {idColumnName};
+		synchronized(ScoutingDBHelper.lock)
+		{
+			SQLiteDatabase db = ScoutingDBHelper.getInstance().getWritableDatabase();
 
-		Cursor c = db.query(table, projection, whereClause, whereArgs, null, null, null, "0,1");
-		try
-		{
-			if(c.moveToFirst())
+			String[] projection = {idColumnName};
+
+			Cursor c = db.query(table, projection, whereClause, whereArgs, null, null, null, "0,1");
+
+			try
 			{
-				String[] id = {c.getString(c.getColumnIndexOrThrow(idColumnName))};
-				values.put(FACT_MATCH_DATA_Entry.COLUMN_NAME_TIMESTAMP, DBSyncService.dateParser.format(new Date()));
-				db.update(table, values, idColumnName + "=?", id);
-			}
-			else
+				if(c.moveToFirst())
+				{
+					String[] id = {c.getString(c.getColumnIndexOrThrow(idColumnName))};
+					values.put(FACT_MATCH_DATA_Entry.COLUMN_NAME_TIMESTAMP, DBSyncService.dateParser.format(new Date()));
+					db.update(table, values, idColumnName + "=?", id);
+				}
+				else
+				{
+					db.insert(table, nullColumnHack, values);
+				}
+			} finally
 			{
-				db.insert(table, nullColumnHack, values);
+				c.close();
+
+				ScoutingDBHelper.getInstance().close();
 			}
-		} finally
-		{
-			c.close();
 		}
 	}
 
 	public boolean submitMatch(MatchStatsStruct team1Data, MatchStatsStruct team2Data, MatchStatsStruct team3Data)
 	{
-		synchronized(ScoutingDBHelper.helper)
+		try
 		{
-			try
+			String where = FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID + "=? AND " + FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID + "=? AND " + FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID + "=?";
+			ContentValues values, values2, values3;
+			List<ContentValues> cycles1, cycles2, cycles3;
+			synchronized(ScoutingDBHelper.lock)
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getWritableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
-				String where = FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID
-						+ "=? AND "
-						+ FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID
-						+ "=? AND " + FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID
-						+ "=?";
-
-				ContentValues values = team1Data.getValues(this, db);
-				String[] whereArgs = {
-						values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID),
-						values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID),
-						values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID)};
-
-				insertOrUpdate(db, FACT_MATCH_DATA_Entry.TABLE_NAME, null,
-						values, FACT_MATCH_DATA_Entry.COLUMN_NAME_ID, where,
-						whereArgs);
-
-				values = team2Data.getValues(this, db);
-				whereArgs[0] = values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID);
-				whereArgs[1] = values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID);
-				whereArgs[2] = values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID);
-
-				insertOrUpdate(db, FACT_MATCH_DATA_Entry.TABLE_NAME, null,
-						values, FACT_MATCH_DATA_Entry.COLUMN_NAME_ID, where,
-						whereArgs);
-
-				values = team3Data.getValues(this, db);
-				whereArgs[0] = values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID);
-				whereArgs[1] = values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID);
-				whereArgs[2] = values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID);
-
-				insertOrUpdate(db, FACT_MATCH_DATA_Entry.TABLE_NAME, null,
-						values, FACT_MATCH_DATA_Entry.COLUMN_NAME_ID, where,
-						whereArgs);
-
-				whereArgs = new String[4];
-				where = FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID + "=? AND "
-						+ FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID
-						+ "=? AND " + FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID
-						+ "=? AND "
-						+ FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM + "=?";
-
+				values = team1Data.getValues(this, db);
+				values2 = team2Data.getValues(this, db);
+				values3 = team3Data.getValues(this, db);
 				MatchStatsAA data;
 				if(team1Data instanceof MatchStatsAA)
 				{
 					data = (MatchStatsAA) team1Data;
-					for(ContentValues cycle : data.getCycles(this, db))
-					{
-						whereArgs[0] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID);
-						whereArgs[1] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID);
-						whereArgs[2] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID);
-						whereArgs[3] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
-
-						insertOrUpdate(db, FACT_CYCLE_DATA_Entry.TABLE_NAME,
-								null, cycle,
-								FACT_CYCLE_DATA_Entry.COLUMN_NAME_ID, where,
-								whereArgs);
-					}
+					cycles1 = data.getCycles(this, db);
+				}
+				else
+				{
+					cycles1 = new ArrayList<ContentValues>();
 				}
 				if(team2Data instanceof MatchStatsAA)
 				{
 					data = (MatchStatsAA) team2Data;
-					for(ContentValues cycle : data.getCycles(this, db))
-					{
-						whereArgs[0] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID);
-						whereArgs[1] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID);
-						whereArgs[2] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID);
-						whereArgs[3] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
-
-						insertOrUpdate(db, FACT_CYCLE_DATA_Entry.TABLE_NAME,
-								null, cycle,
-								FACT_CYCLE_DATA_Entry.COLUMN_NAME_ID, where,
-								whereArgs);
-					}
+					cycles2 = data.getCycles(this, db);
+				}
+				else
+				{
+					cycles2 = new ArrayList<ContentValues>();
 				}
 				if(team3Data instanceof MatchStatsAA)
 				{
 					data = (MatchStatsAA) team3Data;
-					for(ContentValues cycle : data.getCycles(this, db))
-					{
-						whereArgs[0] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID);
-						whereArgs[1] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID);
-						whereArgs[2] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID);
-						whereArgs[3] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
-
-						insertOrUpdate(db, FACT_CYCLE_DATA_Entry.TABLE_NAME,
-								null, cycle,
-								FACT_CYCLE_DATA_Entry.COLUMN_NAME_ID, where,
-								whereArgs);
-					}
+					cycles3 = data.getCycles(this, db);
+				}
+				else
+				{
+					cycles3 = new ArrayList<ContentValues>();
 				}
 
-				ScoutingDBHelper.helper.close();
-
-				startSync();
-
-				return true;
-
-			} catch(Exception e)
-			{
-				return false;
+				ScoutingDBHelper.getInstance().close();
 			}
+			String[] whereArgs = {values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID), values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID), values.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID)};
+
+			insertOrUpdate(FACT_MATCH_DATA_Entry.TABLE_NAME, null, values, FACT_MATCH_DATA_Entry.COLUMN_NAME_ID, where, whereArgs);
+
+			whereArgs[0] = values2.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID);
+			whereArgs[1] = values2.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID);
+			whereArgs[2] = values2.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID);
+
+			insertOrUpdate(FACT_MATCH_DATA_Entry.TABLE_NAME, null, values2, FACT_MATCH_DATA_Entry.COLUMN_NAME_ID, where, whereArgs);
+
+			whereArgs[0] = values3.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID);
+			whereArgs[1] = values3.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID);
+			whereArgs[2] = values3.getAsString(FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID);
+
+			insertOrUpdate(FACT_MATCH_DATA_Entry.TABLE_NAME, null, values3, FACT_MATCH_DATA_Entry.COLUMN_NAME_ID, where, whereArgs);
+
+			whereArgs = new String[4];
+			where = FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID + "=? AND " + FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID + "=? AND " + FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID + "=? AND " + FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM + "=?";
+
+			for(ContentValues cycle : cycles1)
+			{
+				whereArgs[0] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID);
+				whereArgs[1] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID);
+				whereArgs[2] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID);
+				whereArgs[3] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
+
+				insertOrUpdate(FACT_CYCLE_DATA_Entry.TABLE_NAME, null, cycle, FACT_CYCLE_DATA_Entry.COLUMN_NAME_ID, where, whereArgs);
+			}
+			for(ContentValues cycle : cycles2)
+			{
+				whereArgs[0] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID);
+				whereArgs[1] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID);
+				whereArgs[2] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID);
+				whereArgs[3] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
+
+				insertOrUpdate(FACT_CYCLE_DATA_Entry.TABLE_NAME, null, cycle, FACT_CYCLE_DATA_Entry.COLUMN_NAME_ID, where, whereArgs);
+			}
+			for(ContentValues cycle : cycles3)
+			{
+				whereArgs[0] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID);
+				whereArgs[1] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID);
+				whereArgs[2] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID);
+				whereArgs[3] = cycle.getAsString(FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
+
+				insertOrUpdate(FACT_CYCLE_DATA_Entry.TABLE_NAME, null, cycle, FACT_CYCLE_DATA_Entry.COLUMN_NAME_ID, where, whereArgs);
+			}
+
+			startSync();
+
+			return true;
+
+		} catch(Exception e)
+		{
+			return false;
 		}
 	}
 
 	public boolean submitPits(PitStats stats)
 	{
-		synchronized(ScoutingDBHelper.helper)
+		try
 		{
-			try
+			ContentValues values;
+			synchronized(ScoutingDBHelper.lock)
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getWritableDatabase();
-				ContentValues values = stats.getValues(this, db);
-
-				String[] where = {values.getAsString(SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID)};
-
-				insertOrUpdate(db, SCOUT_PIT_DATA_Entry.TABLE_NAME, null,
-						values, SCOUT_PIT_DATA_Entry.COLUMN_NAME_ID,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID + "=?", where);
-
-				ScoutingDBHelper.helper.close();
-
-				startSync();
-				return true;
-			} catch(Exception e)
-			{
-				return false;
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getWritableDatabase();
+				values = stats.getValues(this, db);
+				ScoutingDBHelper.getInstance().close();
 			}
+
+			String[] where = {values.getAsString(SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID)};
+
+			insertOrUpdate(SCOUT_PIT_DATA_Entry.TABLE_NAME, null, values,
+					SCOUT_PIT_DATA_Entry.COLUMN_NAME_ID,
+					SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID + "=?", where);
+
+			startSync();
+			return true;
+		} catch(Exception e)
+		{
+			return false;
 		}
 	}
 
@@ -283,11 +274,11 @@ public class DB
 
 	public String getTeamPitInfo(String teamNum)
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
 				String[] projection = {SCOUT_PIT_DATA_Entry.COLUMN_NAME_TIMESTAMP};
 				String[] where = {teamNum};
@@ -303,17 +294,22 @@ public class DB
 						null, // don't filter
 						null, // don't order
 						"0,1"); // limit to 1
+
 				String date;
+
 				try
 				{
 					c.moveToFirst();
+
 					date = c.getString(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_TIMESTAMP));
-				} finally
+
+				}
+				finally
 				{
 					c.close();
-				}
 
-				ScoutingDBHelper.helper.close();
+					ScoutingDBHelper.getInstance().close();
+				}
 
 				return date;
 
@@ -336,16 +332,15 @@ public class DB
 
 	public List<String> getConfigList()
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
 				String[] projection = {CONFIGURATION_LU_Entry.COLUMN_NAME_CONFIGURATION_DESC};
 
-				Cursor c = db.query(EVENT_LU_Entry.TABLE_NAME, projection,
-						null, null, null, null, CONFIGURATION_LU_Entry.COLUMN_NAME_ID);
+				Cursor c = db.query(EVENT_LU_Entry.TABLE_NAME, projection, null, null, null, null, CONFIGURATION_LU_Entry.COLUMN_NAME_ID);
 
 				List<String> ret = new ArrayList<String>(c.getCount());
 
@@ -356,8 +351,7 @@ public class DB
 						do
 						{
 							ret.add(c.getString(c.getColumnIndexOrThrow(CONFIGURATION_LU_Entry.COLUMN_NAME_CONFIGURATION_DESC)));
-						}
-						while(c.moveToNext());
+						} while(c.moveToNext());
 					}
 					else
 					{
@@ -378,16 +372,15 @@ public class DB
 
 	public List<String> getWheelBaseList()
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
 				String[] projection = {WHEEL_BASE_LU_Entry.COLUMN_NAME_WHEEL_BASE_DESC};
 
-				Cursor c = db.query(EVENT_LU_Entry.TABLE_NAME, projection,
-						null, null, null, null, WHEEL_BASE_LU_Entry.COLUMN_NAME_ID);
+				Cursor c = db.query(EVENT_LU_Entry.TABLE_NAME, projection, null, null, null, null, WHEEL_BASE_LU_Entry.COLUMN_NAME_ID);
 
 				List<String> ret = new ArrayList<String>(c.getCount());
 
@@ -398,8 +391,7 @@ public class DB
 						do
 						{
 							ret.add(c.getString(c.getColumnIndexOrThrow(WHEEL_BASE_LU_Entry.COLUMN_NAME_WHEEL_BASE_DESC)));
-						}
-						while(c.moveToNext());
+						} while(c.moveToNext());
 					}
 					else
 					{
@@ -419,16 +411,15 @@ public class DB
 
 	public List<String> getWheelTypeList()
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
 				String[] projection = {WHEEL_TYPE_LU_Entry.COLUMN_NAME_WHEEL_TYPE_DESC};
 
-				Cursor c = db.query(EVENT_LU_Entry.TABLE_NAME, projection,
-						null, null, null, null, WHEEL_TYPE_LU_Entry.COLUMN_NAME_ID);
+				Cursor c = db.query(EVENT_LU_Entry.TABLE_NAME, projection, null, null, null, null, WHEEL_TYPE_LU_Entry.COLUMN_NAME_ID);
 
 				List<String> ret = new ArrayList<String>(c.getCount());
 
@@ -439,8 +430,7 @@ public class DB
 						do
 						{
 							ret.add(c.getString(c.getColumnIndexOrThrow(WHEEL_TYPE_LU_Entry.COLUMN_NAME_WHEEL_TYPE_DESC)));
-						}
-						while(c.moveToNext());
+						} while(c.moveToNext());
 					}
 					else
 					{
@@ -460,11 +450,11 @@ public class DB
 
 	public String getURLFromEventName(String eventName)
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 				String[] projection = {EVENT_LU_Entry.COLUMN_NAME_MATCH_URL};
 				String[] where = {eventName};
 				Cursor c = db.query(EVENT_LU_Entry.TABLE_NAME, // from the
@@ -479,14 +469,8 @@ public class DB
 						null, // don't filter
 						null, // don't order
 						"0,1"); // limit to 1
-				try
-				{
-					c.moveToFirst();
-					return c.getString(c.getColumnIndexOrThrow(EVENT_LU_Entry.COLUMN_NAME_MATCH_URL));
-				} finally
-				{
-					c.close();
-				}
+				c.moveToFirst();
+				return c.getString(c.getColumnIndexOrThrow(EVENT_LU_Entry.COLUMN_NAME_MATCH_URL));
 			} catch(Exception e)
 			{
 				return null;
@@ -494,19 +478,18 @@ public class DB
 		}
 	}
 
+
 	public List<String> getNotesOptions()
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
 				String[] projection = {NOTES_OPTIONS_Entry.COLUMN_NAME_OPTION_TEXT};
 
-				Cursor c = db.query(NOTES_OPTIONS_Entry.TABLE_NAME, projection,
-						null, null, null, null,
-						NOTES_OPTIONS_Entry.COLUMN_NAME_ID);
+				Cursor c = db.query(NOTES_OPTIONS_Entry.TABLE_NAME, projection, null, null, null, null, NOTES_OPTIONS_Entry.COLUMN_NAME_ID);
 
 				List<String> ret = new ArrayList<String>(c.getCount());
 
@@ -517,8 +500,7 @@ public class DB
 						do
 						{
 							ret.add(c.getString(c.getColumnIndexOrThrow(NOTES_OPTIONS_Entry.COLUMN_NAME_OPTION_TEXT)));
-						}
-						while(c.moveToNext());
+						} while(c.moveToNext());
 					}
 					else
 					{
@@ -569,46 +551,27 @@ public class DB
 
 	public PitStats getTeamPitStats(int teamNum)
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
 				PitStatsAA stats = new PitStatsAA();
 
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
-				String[] projection = {
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_CONFIGURATION_ID,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_TYPE_ID,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_BASE_ID,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTONOMOUS_MODE,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_HIGH,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_LOW,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_HOT,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_MOBILE,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_GOALIE,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_TRUSS,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_CATCH,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_ACTIVE_CONTROL,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_LAUNCH_BALL,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_SCORE_HIGH,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_SCORE_LOW,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_MAX_HEIGHT,
-						SCOUT_PIT_DATA_Entry.COLUMN_NAME_SCOUT_COMMENTS};
+				String[] projection = {SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID, SCOUT_PIT_DATA_Entry.COLUMN_NAME_CONFIGURATION_ID, SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_TYPE_ID, SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_BASE_ID, SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTONOMOUS_MODE, SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_HIGH, SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_LOW, SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_HOT, SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_MOBILE, SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTO_GOALIE, SCOUT_PIT_DATA_Entry.COLUMN_NAME_TRUSS, SCOUT_PIT_DATA_Entry.COLUMN_NAME_CATCH, SCOUT_PIT_DATA_Entry.COLUMN_NAME_ACTIVE_CONTROL, SCOUT_PIT_DATA_Entry.COLUMN_NAME_LAUNCH_BALL, SCOUT_PIT_DATA_Entry.COLUMN_NAME_SCORE_HIGH, SCOUT_PIT_DATA_Entry.COLUMN_NAME_SCORE_LOW, SCOUT_PIT_DATA_Entry.COLUMN_NAME_MAX_HEIGHT, SCOUT_PIT_DATA_Entry.COLUMN_NAME_SCOUT_COMMENTS};
 				String[] where = {String.valueOf(teamNum)};
 				Cursor c = db.query(SCOUT_PIT_DATA_Entry.TABLE_NAME, projection, SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID + "=?", where, null, null, null, "0,1"); // limit to 1
 
 				try
 				{
-
 					stats.fromCursor(c, this, db);
 				} finally
 				{
 					c.close();
-				}
 
-				ScoutingDBHelper.helper.close();
+					ScoutingDBHelper.getInstance().close();
+				}
 
 				return stats;
 			} catch(Exception e)
@@ -621,80 +584,37 @@ public class DB
 
 	public MatchStatsStruct getMatchStats(String eventName, int match, int team)
 	{
-		synchronized(ScoutingDBHelper.helper)
+		synchronized(ScoutingDBHelper.lock)
 		{
 			try
 			{
 				MatchStatsAA stats = new MatchStatsAA(team, eventName, match);
-				SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
+				SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 
-				String[] projection = {
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_HIGH,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_HIGH_HOT,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_LOW,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_LOW_HOT,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_ASSIST_POINTS,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_HIGH,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_LOW,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_TRUSS,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_CAUGHT,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_MOBILE,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_GOALIE,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_NUM_CYCLES,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_MISSES,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_FOUL,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_TECH_FOUL,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_TIP_OVER,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_YELLOW_CARD,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_RED_CARD,
-						FACT_MATCH_DATA_Entry.COLUMN_NAME_NOTES};
+				String[] projection = {FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID, FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID, FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID, FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_HIGH, FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_HIGH_HOT, FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_LOW, FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_LOW_HOT, FACT_MATCH_DATA_Entry.COLUMN_NAME_ASSIST_POINTS, FACT_MATCH_DATA_Entry.COLUMN_NAME_HIGH, FACT_MATCH_DATA_Entry.COLUMN_NAME_LOW, FACT_MATCH_DATA_Entry.COLUMN_NAME_TRUSS, FACT_MATCH_DATA_Entry.COLUMN_NAME_CAUGHT, FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_MOBILE, FACT_MATCH_DATA_Entry.COLUMN_NAME_AUTO_GOALIE, FACT_MATCH_DATA_Entry.COLUMN_NAME_NUM_CYCLES, FACT_MATCH_DATA_Entry.COLUMN_NAME_MISSES, FACT_MATCH_DATA_Entry.COLUMN_NAME_FOUL, FACT_MATCH_DATA_Entry.COLUMN_NAME_TECH_FOUL, FACT_MATCH_DATA_Entry.COLUMN_NAME_TIP_OVER, FACT_MATCH_DATA_Entry.COLUMN_NAME_YELLOW_CARD, FACT_MATCH_DATA_Entry.COLUMN_NAME_RED_CARD, FACT_MATCH_DATA_Entry.COLUMN_NAME_NOTES};
 
-				String[] where = {String.valueOf(match),
-						String.valueOf(getEventIDFromName(eventName, db)),
-						String.valueOf(team)};
+				String[] where = {String.valueOf(match), String.valueOf(getEventIDFromName(eventName, db)), String.valueOf(team)};
 
-				Cursor c = db.query(FACT_MATCH_DATA_Entry.TABLE_NAME,
-						projection, FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID
-						+ "=? AND "
-						+ FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID
-						+ "=? AND "
-						+ FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID
-						+ "=?", where, null, null, null, "0,1");
+				Cursor c = db.query(FACT_MATCH_DATA_Entry.TABLE_NAME, projection, FACT_MATCH_DATA_Entry.COLUMN_NAME_MATCH_ID + "=? AND " + FACT_MATCH_DATA_Entry.COLUMN_NAME_EVENT_ID + "=? AND " + FACT_MATCH_DATA_Entry.COLUMN_NAME_TEAM_ID + "=?", where, null, null, null, "0,1");
 
-				String[] projection2 = {
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_NEAR_POSS,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_WHITE_POSS,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_FAR_POSS,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_TRUSS,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_CATCH,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_HIGH,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_LOW,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_ASSISTS};
+				String[] projection2 = {FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID, FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID, FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID, FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM, FACT_CYCLE_DATA_Entry.COLUMN_NAME_NEAR_POSS, FACT_CYCLE_DATA_Entry.COLUMN_NAME_WHITE_POSS, FACT_CYCLE_DATA_Entry.COLUMN_NAME_FAR_POSS, FACT_CYCLE_DATA_Entry.COLUMN_NAME_TRUSS, FACT_CYCLE_DATA_Entry.COLUMN_NAME_CATCH, FACT_CYCLE_DATA_Entry.COLUMN_NAME_HIGH, FACT_CYCLE_DATA_Entry.COLUMN_NAME_LOW, FACT_CYCLE_DATA_Entry.COLUMN_NAME_ASSISTS};
 
-				Cursor c2 = db.query(FACT_CYCLE_DATA_Entry.TABLE_NAME,
-						projection2, FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID
-						+ "=? AND "
-						+ FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID
-						+ "=? AND "
-						+ FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID
-						+ "=?", where, null, null,
-						FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
+				Cursor c2 = db.query(FACT_CYCLE_DATA_Entry.TABLE_NAME, projection2, FACT_CYCLE_DATA_Entry.COLUMN_NAME_MATCH_ID + "=? AND " + FACT_CYCLE_DATA_Entry.COLUMN_NAME_EVENT_ID + "=? AND " + FACT_CYCLE_DATA_Entry.COLUMN_NAME_TEAM_ID + "=?", where, null, null, FACT_CYCLE_DATA_Entry.COLUMN_NAME_CYCLE_NUM);
 
-				stats.fromCursor(c, c2, this, db);
+				try
+				{
+					stats.fromCursor(c, c2, this, db);
+				}
+				finally
+				{
+					c2.close();
 
-				ScoutingDBHelper.helper.close();
+					ScoutingDBHelper.getInstance().close();
+				}
 
 				return stats;
 
-			}
-			catch(Exception e)
+			} catch(Exception e)
 			{
 				return null;
 			}
@@ -734,8 +654,7 @@ public class DB
 		String[] projection = {CONFIGURATION_LU_Entry.COLUMN_NAME_ID};
 		String[] where = {config};
 		Cursor c = db.query(CONFIGURATION_LU_Entry.TABLE_NAME, projection, // select
-				CONFIGURATION_LU_Entry.COLUMN_NAME_CONFIGURATION_DESC
-						+ " LIKE ?", where, // EventName
+				CONFIGURATION_LU_Entry.COLUMN_NAME_CONFIGURATION_DESC + " LIKE ?", where, // EventName
 				null, // don't group
 				null, // don't filter
 				null, // don't order
@@ -797,7 +716,7 @@ public class DB
 		}
 	}
 
-	public String getConfigNameFromID(int config, SQLiteDatabase db)
+	public static String getConfigNameFromID(int config, SQLiteDatabase db)
 	{
 		String[] projection = {CONFIGURATION_LU_Entry.COLUMN_NAME_CONFIGURATION_DESC};
 		String[] where = {String.valueOf(config)};
@@ -817,7 +736,7 @@ public class DB
 		}
 	}
 
-	public String getWheelBaseNameFromID(int base, SQLiteDatabase db)
+	public static String getWheelBaseNameFromID(int base, SQLiteDatabase db)
 	{
 		String[] projection = {WHEEL_BASE_LU_Entry.COLUMN_NAME_WHEEL_BASE_DESC};
 		String[] where = {String.valueOf(base)};
@@ -837,7 +756,7 @@ public class DB
 		}
 	}
 
-	public String getWheelTypeNameFromID(int type, SQLiteDatabase db)
+	public static String getWheelTypeNameFromID(int type, SQLiteDatabase db)
 	{
 
 		String[] projection = {WHEEL_TYPE_LU_Entry.COLUMN_NAME_WHEEL_TYPE_DESC};
@@ -882,25 +801,20 @@ public class DB
 		@Override
 		protected String doInBackground(ExportCallback... params)
 		{
-			synchronized(ScoutingDBHelper.helper)
+			synchronized(ScoutingDBHelper.lock)
 			{
 				try
 				{
-					SQLiteDatabase db = ScoutingDBHelper.helper.getReadableDatabase();
-
+					SQLiteDatabase db = ScoutingDBHelper.getInstance().getReadableDatabase();
 					callback = params[0];
 
-					//String match_data = "", cycle_data = "", pit_data = "";
+					SparseArray<String> configs = new SparseArray<String>();
+					SparseArray<String> types = new SparseArray<String>();
+					SparseArray<String> bases = new SparseArray<String>();
 
 					Cursor c;
-
-					c = db.rawQuery(
-							"SELECT * FROM "
-									+ FRCScoutingContract.FACT_MATCH_DATA_Entry.TABLE_NAME,
-							null);
-
-					StringBuilder match_data = new StringBuilder(c.getCount()*c.getColumnCount()*2);
-
+					c = db.rawQuery("SELECT * FROM " + FRCScoutingContract.FACT_MATCH_DATA_Entry.TABLE_NAME, null);
+					StringBuilder match_data = new StringBuilder(c.getCount() * c.getColumnCount() * 2);
 					for(int i = 0; i < c.getColumnCount(); i++)
 					{
 						if(i > 0)
@@ -910,7 +824,6 @@ public class DB
 						match_data.append(c.getColumnName(i));
 					}
 					match_data.append("\n");
-
 					try
 					{
 						if(c.moveToFirst())
@@ -936,34 +849,24 @@ public class DB
 										match_data.append(c.getString(j));
 									}
 								}
-
 								match_data.append("\n");
-							}
-							while(c.moveToNext());
+							} while(c.moveToNext());
 						}
 					} finally
 					{
 						c.close();
 					}
-
-					c = db.rawQuery(
-							"SELECT * FROM "
-									+ FRCScoutingContract.FACT_CYCLE_DATA_Entry.TABLE_NAME,
-							null);
-
-					StringBuilder cycle_data = new StringBuilder(c.getCount()*c.getColumnCount()*2);
-
+					c = db.rawQuery("SELECT * FROM " + FRCScoutingContract.FACT_CYCLE_DATA_Entry.TABLE_NAME, null);
+					StringBuilder cycle_data = new StringBuilder(c.getCount() * c.getColumnCount() * 2);
 					for(int i = 0; i < c.getColumnCount(); i++)
 					{
 						if(i > 0)
 						{
 							cycle_data.append(",");
 						}
-
 						cycle_data.append(c.getColumnName(i));
 					}
 					cycle_data.append("\n");
-
 					try
 					{
 						if(c.moveToFirst())
@@ -976,36 +879,25 @@ public class DB
 									{
 										cycle_data.append(",");
 									}
-
 									cycle_data.append(c.getString(j));
 								}
-
 								cycle_data.append("\n");
-							}
-							while(c.moveToNext());
+							} while(c.moveToNext());
 						}
 					} finally
 					{
 						c.close();
 					}
-
-					c = db.rawQuery(
-							"SELECT * FROM "
-									+ FRCScoutingContract.SCOUT_PIT_DATA_Entry.TABLE_NAME,
-							null);
-
-					StringBuilder pit_data = new StringBuilder(c.getCount()*c.getColumnCount()*2);
-
+					c = db.rawQuery("SELECT * FROM " + FRCScoutingContract.SCOUT_PIT_DATA_Entry.TABLE_NAME, null);
+					StringBuilder pit_data = new StringBuilder(c.getCount() * c.getColumnCount() * 2);
 					for(int i = 0; i < c.getColumnCount(); i++)
 					{
 						if(i > 0)
 						{
 							pit_data.append("\n");
 						}
-
 						pit_data.append(c.getColumnName(i));
 					}
-
 					pit_data.append("\n");
 					try
 					{
@@ -1027,22 +919,48 @@ public class DB
 									{
 										pit_data.append("\"").append(c.getString(j)).append("\"");
 									}
+									else if(SCOUT_PIT_DATA_Entry.COLUMN_NAME_CONFIGURATION_ID.equalsIgnoreCase(c.getColumnName(j)))
+									{
+										String config = configs.get(c.getInt(j));
+										if(config == null)
+										{
+											config = getConfigNameFromID(c.getInt(j), db);
+											configs.append(c.getInt(j), config);
+										}
+										pit_data.append(config);
+									}
+									else if(SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_BASE_ID.equalsIgnoreCase(c.getColumnName(j)))
+									{
+										String base = bases.get(c.getInt(j));
+										if(base == null)
+										{
+											base = getWheelBaseNameFromID(c.getInt(j), db);
+											bases.append(c.getInt(j), base);
+										}
+										pit_data.append(base);
+									}
+									else if(SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_TYPE_ID.equalsIgnoreCase(c.getColumnName(j)))
+									{
+										String type = types.get(c.getInt(j));
+										if(type == null)
+										{
+											type = getWheelTypeNameFromID(c.getInt(j), db);
+											types.append(c.getInt(j), type);
+										}
+										pit_data.append(type);
+									}
 									else
 									{
 										pit_data.append(c.getString(j));
 									}
 								}
-
 								pit_data.append("\n");
-							}
-							while(c.moveToNext());
+							} while(c.moveToNext());
 						}
 					} finally
 					{
 						c.close();
 					}
-
-
 					File sd = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
 					File folderSharpScout = new File(sd, "/SHARPScout/");
 					folderSharpScout.mkdirs();
@@ -1059,14 +977,12 @@ public class DB
 					destination = new FileOutputStream(pits);
 					destination.write(pit_data.toString().getBytes());
 					destination.close();
-					ScoutingDBHelper.helper.close();
+					ScoutingDBHelper.getInstance().close();
 					return "DB exported to " + sd.getAbsolutePath();
 				} catch(Exception e)
 				{
-					ScoutingDBHelper.helper.close();
-
+					ScoutingDBHelper.getInstance().close();
 					ACRA.getErrorReporter().handleException(e);
-
 					return e.toString();
 				}
 			}
@@ -1078,5 +994,4 @@ public class DB
 		}
 
 	}
-
 }

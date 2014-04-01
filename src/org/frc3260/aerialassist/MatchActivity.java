@@ -23,6 +23,7 @@ import java.util.List;
 public class MatchActivity extends Activity implements OnItemSelectedListener
 {
 	private static final int CANCEL_DIALOG = 0;
+	private static final int LOAD_DIALOG = 353563;
 
 	private String HELPMESSAGE;
 
@@ -168,12 +169,19 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 
 		matchT.setText(match);
 
+		boolean loadData = false;
+
 		if(team1 != null && team1.length() > 0 && match != null && match.length() > 0)
 		{
 			team1Data = (MatchStatsAA) submitter.getMatchStats(Prefs.getEvent(getApplicationContext(), "Buckeye Regional"), Integer.valueOf(match), Integer.valueOf(team1));
+
 			if(team1Data == null)
 			{
 				team1Data = new MatchStatsAA(Integer.valueOf(team1), Prefs.getEvent(getApplicationContext(), "Buckeye Regional"), Integer.valueOf(match));
+			}
+			else
+			{
+				loadData = true;
 			}
 		}
 		else
@@ -188,6 +196,10 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 			{
 				team2Data = new MatchStatsAA(Integer.valueOf(team2), Prefs.getEvent(getApplicationContext(), "Buckeye Regional"), Integer.valueOf(match));
 			}
+			else
+			{
+				loadData = true;
+			}
 		}
 		else
 		{
@@ -201,10 +213,19 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 			{
 				team3Data = new MatchStatsAA(Integer.valueOf(team3), Prefs.getEvent(getApplicationContext(), "Buckeye Regional"), Integer.valueOf(match));
 			}
+			else
+			{
+				loadData = true;
+			}
 		}
 		else
 		{
 			team3Data = new MatchStatsAA();
+		}
+
+		if(loadData)
+		{
+			showDialog(LOAD_DIALOG);
 		}
 
 		currentCycle = 1;
@@ -1434,7 +1455,7 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 				currentrow++;
 			}
 		}
-		
+
 		if(team2Data.high > 0)
 		{
 			for(int i = 0; i < team2Data.high; i++)
@@ -1480,9 +1501,9 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 		// team3
 		((CheckBox) findViewById(R.id.team3AutoGoalie)).setChecked(team3Data.auto_goalie);
 		((CheckBox) findViewById(R.id.team3AutoMoved)).setChecked(team3Data.auto_mobile);
-		
+
 		currentrow = 1;
-		
+
 		if(team3Data.auto_high > 0)
 		{
 			for(int i = 0; i < team3Data.auto_high; i++)
@@ -1504,7 +1525,7 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 				currentrow++;
 			}
 		}
-		
+
 		if(team3Data.auto_high_hot > 0)
 		{
 			for(int i = 0; i < team3Data.auto_high_hot; i++)
@@ -1526,7 +1547,7 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 				currentrow++;
 			}
 		}
-		
+
 		if(team3Data.auto_low > 0)
 		{
 			for(int i = 0; i < team3Data.auto_low; i++)
@@ -2023,7 +2044,11 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 							tempcount += possessions[2][zone3] ? 1 : 0;
 
 							if(tempcount > count)
-							{zonelocs[0] = possessions[0][zone] ? zone : -1;zonelocs[1] = possessions[1][zone2] ? zone2 : -1;zonelocs[2] = possessions[2][zone3] ? zone3 : -1;count = tempcount;
+							{
+								zonelocs[0] = possessions[0][zone] ? zone : -1;
+								zonelocs[1] = possessions[1][zone2] ? zone2 : -1;
+								zonelocs[2] = possessions[2][zone3] ? zone3 : -1;
+								count = tempcount;
 							}
 						}
 					}
@@ -2073,15 +2098,113 @@ public class MatchActivity extends Activity implements OnItemSelectedListener
 		{
 			case CANCEL_DIALOG:
 				builder.setMessage("Cancel Match Entry?\nChanges will not be saved.").setCancelable(false)
-						.setPositiveButton("Yes",new DialogInterface.OnClickListener(){	public void onClick(DialogInterface dialog, int id)	{		MatchActivity.this.finish();	}})
-						.setNegativeButton("No",new DialogInterface.OnClickListener(){	public void onClick(DialogInterface dialog, int id)	{		dialog.cancel();	}});
+						.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+						{
+							public void onClick(DialogInterface dialog, int id)
+							{
+								MatchActivity.this.finish();
+							}
+						})
+						.setNegativeButton("No", new DialogInterface.OnClickListener()
+						{
+							public void onClick(DialogInterface dialog, int id)
+							{
+								dialog.cancel();
+							}
+						});
+				dialog = builder.create();
+				break;
+			case LOAD_DIALOG:
+				builder.setMessage("Data for this match Exists.\nLoad old match?")
+						.setCancelable(false)
+						.setPositiveButton("Yes",
+								new DialogInterface.OnClickListener()
+								{
+									public void onClick(DialogInterface dialog,
+														int id)
+									{
+										dialog.cancel();
+									}
+								})
+						.setNegativeButton("No",
+								new DialogInterface.OnClickListener()
+								{
+									public void onClick(DialogInterface dialog,
+														int id)
+									{
+										if(teamText1.getText().toString().length() > 0
+												&& matchT.getText().toString()
+												.length() > 0)
+										{
+											team1Data = new MatchStatsAA(
+													Integer.valueOf(teamText1
+															.getText().toString()),
+													Prefs.getEvent(
+															getApplicationContext(),
+															"Buckeye Regional"),
+													Integer.valueOf(matchT
+															.getText().toString()
+															.length()));
+										}
+										else
+										{
+											team1Data = new MatchStatsAA();
+										}
+
+										if(teamText2.getText().toString().length() > 0
+												&& matchT.getText().toString()
+												.length() > 0)
+										{
+											team2Data = new MatchStatsAA(
+													Integer.valueOf(teamText2
+															.getText().toString()),
+													Prefs.getEvent(
+															getApplicationContext(),
+															"Buckeye Regional"),
+													Integer.valueOf(matchT
+															.getText().toString()
+															.length()));
+										}
+										else
+										{
+											team2Data = new MatchStatsAA();
+										}
+
+										if(teamText3.getText().toString().length() > 0
+												&& matchT.getText().toString()
+												.length() > 0)
+										{
+											team3Data = new MatchStatsAA(
+													Integer.valueOf(teamText3
+															.getText().toString()),
+													Prefs.getEvent(
+															getApplicationContext(),
+															"Buckeye Regional"),
+													Integer.valueOf(matchT
+															.getText().toString()
+															.length()));
+										}
+										else
+										{
+											team3Data = new MatchStatsAA();
+										}
+										loadAuto();
+										loadCycle(currentCycle);
+										loadEndgame();
+									}
+								});
 				dialog = builder.create();
 				break;
 
 			case MainMenuSelection.HELPDIALOG:
 				builder.setMessage(HELPMESSAGE).setCancelable(true)
-						.setPositiveButton("OK",new DialogInterface.OnClickListener(){	public void onClick(DialogInterface dialog, int which)	{		dialog.cancel();
-	}});
+						.setPositiveButton("OK", new DialogInterface.OnClickListener()
+						{
+							public void onClick(DialogInterface dialog, int which)
+							{
+								dialog.cancel();
+							}
+						});
 				dialog = builder.create();
 				break;
 

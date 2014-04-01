@@ -54,9 +54,9 @@ public abstract class PitStats
         c.moveToFirst();
 
         team = c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_TEAM_ID));
-        chassis_config = db.getConfigNameFromID(c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_CONFIGURATION_ID)), database);
-        wheel_type = db.getWheelTypeNameFromID(c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_TYPE_ID)), database);
-        wheel_base = db.getWheelBaseNameFromID(c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_BASE_ID)), database);
+        chassis_config = DB.getConfigNameFromID(c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_CONFIGURATION_ID)), database);
+        wheel_type = DB.getWheelTypeNameFromID(c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_TYPE_ID)), database);
+        wheel_base = DB.getWheelBaseNameFromID(c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_WHEEL_BASE_ID)), database);
         auto_mode = c.getInt(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_AUTONOMOUS_MODE)) != 0;
         comments = c.getString(c.getColumnIndexOrThrow(SCOUT_PIT_DATA_Entry.COLUMN_NAME_SCOUT_COMMENTS));
     }

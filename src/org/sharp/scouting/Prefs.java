@@ -27,6 +27,8 @@ public class Prefs extends PreferenceActivity
 
 	private ListPreference eventP;
 
+	private CheckBoxPreference syncPreference;
+
 	private static final String URL = "http://www.sharpscouter.com/app/scouting.php";
 
 	private LocalBinder binder;
@@ -44,6 +46,12 @@ public class Prefs extends PreferenceActivity
 		urlP.setOnPreferenceChangeListener(new onPassChangeListener(false));
 
 		eventP = (ListPreference) findPreference("eventPref");
+
+		syncPreference = (CheckBoxPreference) findPreference("enableSyncPref");
+
+		syncPreference.setOnPreferenceChangeListener(new OnSyncChangeListener());
+
+		findPreference("syncFreqPref").setEnabled(getAutoSync(getApplicationContext(), false));
 
 		Preference refreshEventsButton = findPreference("refreshEventsButton");
 
@@ -89,7 +97,7 @@ public class Prefs extends PreferenceActivity
 
 		Intent intent = new Intent(getApplicationContext(), DBSyncService.class);
 		ComponentName myService = startService(intent);
-        bindService(intent, watcher, BIND_AUTO_CREATE);
+		bindService(intent, watcher, BIND_AUTO_CREATE);
 	}
 
 	private void deleteSQLiteDatabase()
@@ -231,6 +239,23 @@ public class Prefs extends PreferenceActivity
 		public void onError(Exception e)
 		{
 			Toast.makeText(getBaseContext(), "Unable to Connect to Server", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private class OnSyncChangeListener implements OnPreferenceChangeListener
+	{
+		@Override
+		public boolean onPreferenceChange(Preference preference, Object newValue)
+		{
+			if(!(newValue instanceof Boolean))
+			{
+				return false;
+			}
+
+			Boolean checked = (Boolean) newValue;
+
+			findPreference("syncFreqPref").setEnabled(checked);
+			return true;
 		}
 	}
 

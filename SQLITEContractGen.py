@@ -1,22 +1,20 @@
 #! /usr/bin/python
 
-global _myscriptname
-
 _description = '''
 This script take in a SQL file with INSERTS and CREATES and transforms
 	it into a SQLite contract in Java. Meant to be used with a phpmyadmin
-	exported sql file.
+	exported sql file. Defaults assume the FRC 836 file structure.
 '''
 
 _defaultRun = '''
 	python SQLITEContractGen.py
-		--packagename=org.frc3260.database
+		--packagename=org.frc836.database
 		--classname=FRCScoutingContract
 		--infile=FRC_Scouting_Server/scouting.sql
-		--outfile=src/org/frc3260/database/FRCScoutingContract.java
+		--outfile=src/org/frc836/database/FRCScoutingContract.java
 '''
-__author__ = "Edward"
-__version__ = "1.0"
+__author__ = "Jonny"
+__version__ = "2.0"
 __copyright__ = ""
 
 import re
@@ -415,8 +413,8 @@ def init_args():
 		help='The file that needs to be imported to use the baseclass')
 
 	parser.set_defaults( infilename='FRC_Scouting_Server/scouting.sql',
-							outfilename='src/org/frc3260/database/FRCScoutingContract.java',
-							packagename='org.frc3260.database',
+							outfilename='src/org/frc836/database/FRCScoutingContract.java',
+							packagename='org.frc836.database',
 							classname='FRCScoutingContract',
 							baseclass='BaseColumns',
 							baseclassHeader='android.provider.BaseColumns'

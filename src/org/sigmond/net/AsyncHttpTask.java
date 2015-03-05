@@ -1,8 +1,22 @@
+/*
+ * Copyright 2013 Daniel Logan
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.sigmond.net;
 
-
 import android.os.AsyncTask;
-import android.util.Log;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.CookieStore;
@@ -12,7 +26,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.impl.cookie.CookieSpecBase;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.util.List;
 
@@ -44,17 +57,17 @@ public class AsyncHttpTask extends AsyncTask<HttpRequestInfo, Integer, HttpReque
             CookieSpecBase base = new BrowserCompatSpec();
             URI uri = rinfo.getRequest().getURI();
             int port = uri.getPort();
-            if(port <= 0)
+            if (port <= 0)
             {
                 port = 80;
             }
             CookieOrigin origin = new CookieOrigin(uri.getHost(), port, uri.getPath(), false);
-            for(Header header : allHeaders)
+            for (Header header : allHeaders)
             {
                 List<Cookie> parse = base.parse(header, origin);
-                for(Cookie cookie : parse)
+                for (Cookie cookie : parse)
                 {
-                    if(cookie.getValue() != null && cookie.getValue() != "")
+                    if (cookie.getValue() != null && cookie.getValue() != "")
                     {
                         store.addCookie(cookie);
                     }
@@ -67,14 +80,7 @@ public class AsyncHttpTask extends AsyncTask<HttpRequestInfo, Integer, HttpReque
             //newer versions will not allow reading from a network response input stream in the main thread.
             rinfo.setResponseString(HttpUtils.responseToString(resp));
         }
-        catch(ConnectException e)
-        {
-            if(e.getMessage().contains("ETIMEDOUT"))
-            {
-                Log.i("AsyncHttpTask", "Connection Timed Out");
-            }
-        }
-        catch(Exception e)
+        catch (Exception e)
         {
             rinfo.setException(e);
         }
@@ -86,6 +92,4 @@ public class AsyncHttpTask extends AsyncTask<HttpRequestInfo, Integer, HttpReque
         super.onPostExecute(rinfo);
         rinfo.requestFinished(); //perform callback
     }
-
-
 }

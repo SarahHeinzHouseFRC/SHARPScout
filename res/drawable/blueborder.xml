@@ -8,6 +8,4 @@
         android:width="2dp"
         android:color="#00f" />
 
-    <corners android:radius="8dp"/>
-
 </shape>

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013 Daniel Logan
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.sigmond.net;
 
 import org.apache.http.HttpResponse;
@@ -29,7 +45,22 @@ public class HttpUtils
 
     public void doGet(String url, HttpCallback callback)
     {
+        doGet(url, callback, null);
+    }
+
+    public void doGet(String url, HttpCallback callback,
+                      Map<String, String> headers)
+    {
         HttpGet get = new HttpGet(url);
+
+        if (headers != null)
+        {
+            for (Map.Entry<String, String> entry : headers.entrySet())
+            {
+                get.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
         HttpRequestInfo rinfo = new HttpRequestInfo(get, callback);
         rinfo.setCookieStore(cookies);
         AsyncHttpTask task = new AsyncHttpTask();
@@ -44,14 +75,17 @@ public class HttpUtils
 
             HttpPost post = new HttpPost(url);
 
-            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(params.size());
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+                    params.size());
 
-            for(String key : params.keySet())
+            for (String key : params.keySet())
             {
-                nameValuePairs.add(new BasicNameValuePair(key, params.get(key)));
+                nameValuePairs
+                        .add(new BasicNameValuePair(key, params.get(key)));
             }
 
-            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(nameValuePairs);
+            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
+                    nameValuePairs);
             post.setEntity(entity);
 
             HttpRequestInfo rinfo = new HttpRequestInfo(post, callback);
@@ -60,20 +94,21 @@ public class HttpUtils
             AsyncHttpTask task = new AsyncHttpTask();
             task.execute(rinfo);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             throw new RuntimeException(e);
         }
     }
 
-    public static String responseToString(HttpResponse response) throws IOException
+    public static String responseToString(HttpResponse response)
+            throws IOException
     {
         InputStream in = response.getEntity().getContent();
         InputStreamReader ir = new InputStreamReader(in);
         BufferedReader bin = new BufferedReader(ir);
         String line = null;
         StringBuffer buff = new StringBuffer();
-        while((line = bin.readLine()) != null)
+        while ((line = bin.readLine()) != null)
         {
             buff.append(line + "\n");
         }

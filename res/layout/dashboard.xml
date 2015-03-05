@@ -58,7 +58,7 @@
                     android:id="@+id/dataB"
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
-                    android:enabled="true"
+                    android:enabled="false"
                     android:text="Event Stats"
                     android:layout_gravity="center"/>
         </LinearLayout>

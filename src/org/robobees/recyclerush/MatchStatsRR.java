@@ -41,9 +41,13 @@ public class MatchStatsRR extends MatchStatsStruct
     public boolean auto_stack_3;
     public short auto_bin;
     public short auto_step_bin;
-    public short totes[];
-    public short coops[];
-    public short bins[];
+    public short stacked_count;
+    public short highest_tote;
+    public short cans_count;
+    public short highest_can;
+    public short coop_totes;
+    public boolean from_landfill;
+    public boolean from_player;
     public short bin_litter;
     public short landfill_litter;
     public boolean tipped_stack;
@@ -75,22 +79,6 @@ public class MatchStatsRR extends MatchStatsStruct
         auto_bin = 0;
         auto_step_bin = 0;
 
-        totes = new short[TOTES_IN_STACK];
-        coops = new short[COOP_TOTES_STACK];
-        bins = new short[TOTES_IN_STACK];
-
-        for (int i = 0; i < TOTES_IN_STACK; i++)
-        {
-            totes[i] = 0;
-        }
-        for (int i = 0; i < COOP_TOTES_STACK; i++)
-        {
-            coops[i] = 0;
-        }
-        for (int i = 0; i < TOTES_IN_STACK; i++)
-        {
-            bins[i] = 0;
-        }
 
         bin_litter = 0;
         landfill_litter = 0;
@@ -98,6 +86,7 @@ public class MatchStatsRR extends MatchStatsStruct
 
     public ContentValues getValues(DB db, SQLiteDatabase database)
     {
+
         ContentValues vals = super.getValues(db, database);
         vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_AUTO_MOVE,
                 auto_move ? 1 : 0);
@@ -110,30 +99,11 @@ public class MatchStatsRR extends MatchStatsStruct
         vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_AUTO_STEP_BIN,
                 auto_step_bin);
 
-        for (int i = 1; i <= TOTES_IN_STACK; i++)
-        {
-            vals.put(
-                    FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_TOTES_1.substring(0,
-                            FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_TOTES_1
-                                    .length() - 1)
-                            + i, totes[i - 1]);
-        }
-        for (int i = 1; i <= COOP_TOTES_STACK; i++)
-        {
-            vals.put(
-                    FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_COOP_1.substring(0,
-                            FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_COOP_1
-                                    .length() - 1)
-                            + i, coops[i - 1]);
-        }
-        for (int i = 1; i <= TOTES_IN_STACK; i++)
-        {
-            vals.put(
-                    FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_BIN_1.substring(0,
-                            FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_BIN_1
-                                    .length() - 1)
-                            + i, bins[i - 1]);
-        }
+        vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_STACKED_COUNT, stacked_count);
+        vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_HIGHEST_TOTE, highest_tote);
+        vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_CANS_COUNT, cans_count);
+        vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_HIGHEST_CAN, highest_can);
+        vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_COOP_TOTES, coop_totes);
 
         vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_BIN_LITTER, bin_litter);
         vals.put(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_LANDFILL_LITTER,
@@ -166,36 +136,7 @@ public class MatchStatsRR extends MatchStatsStruct
                 .getShort(c
                         .getColumnIndexOrThrow(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_AUTO_STEP_BIN));
 
-        for (int i = 1; i <= TOTES_IN_STACK; i++)
-        {
-            totes[i - 1] = c
-                    .getShort(c.getColumnIndexOrThrow(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_TOTES_1
-                            .substring(
-                                    0,
-                                    FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_TOTES_1
-                                            .length() - 1)
-                            + i));
-        }
-        for (int i = 1; i <= COOP_TOTES_STACK; i++)
-        {
-            coops[i - 1] = c
-                    .getShort(c.getColumnIndexOrThrow(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_COOP_1
-                            .substring(
-                                    0,
-                                    FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_COOP_1
-                                            .length() - 1)
-                            + i));
-        }
-        for (int i = 1; i <= TOTES_IN_STACK; i++)
-        {
-            bins[i - 1] = c
-                    .getShort(c.getColumnIndexOrThrow(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_BIN_1
-                            .substring(
-                                    0,
-                                    FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_BIN_1
-                                            .length() - 1)
-                            + i));
-        }
+
 
         bin_litter = c
                 .getShort(c

@@ -80,7 +80,19 @@ public class MatchActivity extends Activity implements OnClickListener
     private Spinner numBins_step;
 
     // Tele-Op
-    private Button addLf;
+    private Button addStacked;
+    private Spinner stackedCount;
+    private Button addHTote;
+    private Spinner hTote;
+    private Button addNumCans;
+    private Spinner numCans;
+    private Button addHCan;
+    private Spinner hCan;
+    private Button addCoop;
+    private Spinner coopTotes;
+    private CheckBox fromLandfill;
+    private CheckBox fromPlayer;
+    /*private Button addLf;
     private Button addLBin;
     private Button gAdd6;
     private Button gAdd5;
@@ -115,7 +127,7 @@ public class MatchActivity extends Activity implements OnClickListener
     private Spinner binCount4;
     private Spinner binCount3;
     private Spinner binCount2;
-    private Spinner binCount1;
+    private Spinner binCount1;*/
 
     // End Game
     private EditText teamNotes;
@@ -245,24 +257,13 @@ public class MatchActivity extends Activity implements OnClickListener
 
     private void loadTele()
     {
-        LfCount.setSelection(teamData.landfill_litter);
-        LBinCount.setSelection(teamData.bin_litter);
-        gCount1.setSelection(teamData.totes[0]);
-        gCount2.setSelection(teamData.totes[1]);
-        gCount3.setSelection(teamData.totes[2]);
-        gCount4.setSelection(teamData.totes[3]);
-        gCount5.setSelection(teamData.totes[4]);
-        gCount6.setSelection(teamData.totes[5]);
-        yCount1.setSelection(teamData.coops[0]);
-        yCount2.setSelection(teamData.coops[1]);
-        yCount3.setSelection(teamData.coops[2]);
-        yCount4.setSelection(teamData.coops[3]);
-        binCount1.setSelection(teamData.bins[0]);
-        binCount2.setSelection(teamData.bins[1]);
-        binCount3.setSelection(teamData.bins[2]);
-        binCount4.setSelection(teamData.bins[3]);
-        binCount5.setSelection(teamData.bins[4]);
-        binCount6.setSelection(teamData.bins[5]);
+        stackedCount.setSelection(teamData.stacked_count);
+        hTote.setSelection(teamData.highest_tote);
+        numCans.setSelection(teamData.cans_count);
+        hCan.setSelection(teamData.highest_can);
+        coopTotes.setSelection(teamData.coop_totes);
+        fromLandfill.setChecked(teamData.from_landfill);
+        fromPlayer.setChecked(teamData.from_player);
     }
 
     private void loadEndgame()
@@ -343,24 +344,17 @@ public class MatchActivity extends Activity implements OnClickListener
     {
         saveTeamInfo();
 
-        teamData.landfill_litter = (short) LfCount.getSelectedItemPosition();
-        teamData.bin_litter = (short) LBinCount.getSelectedItemPosition();
-        teamData.totes[5] = (short) gCount6.getSelectedItemPosition();
-        teamData.totes[4] = (short) gCount5.getSelectedItemPosition();
-        teamData.totes[3] = (short) gCount4.getSelectedItemPosition();
-        teamData.totes[2] = (short) gCount3.getSelectedItemPosition();
-        teamData.totes[1] = (short) gCount2.getSelectedItemPosition();
-        teamData.totes[0] = (short) gCount1.getSelectedItemPosition();
-        teamData.coops[3] = (short) yCount4.getSelectedItemPosition();
-        teamData.coops[2] = (short) yCount3.getSelectedItemPosition();
-        teamData.coops[1] = (short) yCount2.getSelectedItemPosition();
-        teamData.coops[0] = (short) yCount1.getSelectedItemPosition();
-        teamData.bins[5] = (short) binCount6.getSelectedItemPosition();
-        teamData.bins[4] = (short) binCount5.getSelectedItemPosition();
-        teamData.bins[3] = (short) binCount4.getSelectedItemPosition();
-        teamData.bins[2] = (short) binCount3.getSelectedItemPosition();
-        teamData.bins[1] = (short) binCount2.getSelectedItemPosition();
-        teamData.bins[0] = (short) binCount1.getSelectedItemPosition();
+        stackedCount.setSelection(teamData.stacked_count);
+        hTote.setSelection(teamData.highest_tote);
+        numCans.setSelection(teamData.cans_count);
+        hCan.setSelection(teamData.highest_can);
+        coopTotes.setSelection(teamData.coop_totes);
+        fromLandfill.setChecked(teamData.from_landfill);
+        fromPlayer.setChecked(teamData.from_player);
+
+        teamData.stacked_count = (short) stackedCount.getSelectedItemPosition();
+        teamData.highest_tote = (short) hTote.getSelectedItemPosition();
+
     }
 
     private void saveEnd()
@@ -594,60 +588,23 @@ public class MatchActivity extends Activity implements OnClickListener
             case R.id.bins_step:
                 spin = numBins_step;
                 break;
-            case R.id.addLf:
-                spin = LfCount;
+            case R.id.addStacked:
+                spin = stackedCount;
                 break;
-            case R.id.addLBin:
-                spin = LBinCount;
+            case R.id.addHTote:
+                spin = hTote;
                 break;
-            case R.id.gAdd6:
-                spin = gCount6;
+            case R.id.addNumCans:
+                spin = numCans;
                 break;
-            case R.id.gAdd5:
-                spin = gCount5;
+            case R.id.addHCan:
+                spin = hCan;
                 break;
-            case R.id.gAdd4:
-                spin = gCount4;
+            case R.id.addCoop:
+                spin = coopTotes;
                 break;
             case R.id.gAdd3:
                 spin = gCount3;
-                break;
-            case R.id.gAdd2:
-                spin = gCount2;
-                break;
-            case R.id.gAdd1:
-                spin = gCount1;
-                break;
-            case R.id.yAdd4:
-                spin = yCount4;
-                break;
-            case R.id.yAdd3:
-                spin = yCount3;
-                break;
-            case R.id.yAdd2:
-                spin = yCount2;
-                break;
-            case R.id.yAdd1:
-                spin = yCount1;
-                break;
-            case R.id.binAdd6:
-                spin = binCount6;
-                break;
-            case R.id.binAdd5:
-                spin = binCount5;
-                break;
-            case R.id.binAdd4:
-                spin = binCount4;
-                break;
-            case R.id.binAdd3:
-                spin = binCount3;
-                break;
-            case R.id.binAdd2:
-                spin = binCount2;
-                break;
-            case R.id.binAdd1:
-                spin = binCount1;
-                break;
             default:
                 return;
         }
@@ -685,42 +642,15 @@ public class MatchActivity extends Activity implements OnClickListener
         numBins_step = (Spinner) findViewById(R.id.numBins_step);
 
         // Tele-Op
-        addLf = (Button) findViewById(R.id.addLf);
-        addLBin = (Button) findViewById(R.id.addLBin);
-        gAdd6 = (Button) findViewById(R.id.gAdd6);
-        gAdd5 = (Button) findViewById(R.id.gAdd5);
-        gAdd4 = (Button) findViewById(R.id.gAdd4);
-        gAdd3 = (Button) findViewById(R.id.gAdd3);
-        gAdd2 = (Button) findViewById(R.id.gAdd2);
-        gAdd1 = (Button) findViewById(R.id.gAdd1);
-        yAdd4 = (Button) findViewById(R.id.yAdd4);
-        yAdd3 = (Button) findViewById(R.id.yAdd3);
-        yAdd2 = (Button) findViewById(R.id.yAdd2);
-        yAdd1 = (Button) findViewById(R.id.yAdd1);
-        binAdd6 = (Button) findViewById(R.id.binAdd6);
-        binAdd5 = (Button) findViewById(R.id.binAdd5);
-        binAdd4 = (Button) findViewById(R.id.binAdd4);
-        binAdd3 = (Button) findViewById(R.id.binAdd3);
-        binAdd2 = (Button) findViewById(R.id.binAdd2);
-        binAdd1 = (Button) findViewById(R.id.binAdd1);
+
+
+        addStacked = (Button) findViewById(R.id.addStacked);
+        addHTote = (Button) findViewById(R.id.addHTote);
+        adddNumCans = (Button) findViewById(R.id.addNumCans);
+        addHCan = (Button) findViewById(R.id.addHCan);
+        addCoop = (Button) findViewById(R.id.addCoop);
         LfCount = (Spinner) findViewById(R.id.lfCount);
         LBinCount = (Spinner) findViewById(R.id.lBinCount);
-        gCount6 = (Spinner) findViewById(R.id.gCount6);
-        gCount5 = (Spinner) findViewById(R.id.gCount5);
-        gCount4 = (Spinner) findViewById(R.id.gCount4);
-        gCount3 = (Spinner) findViewById(R.id.gCount3);
-        gCount2 = (Spinner) findViewById(R.id.gCount2);
-        gCount1 = (Spinner) findViewById(R.id.gCount1);
-        yCount4 = (Spinner) findViewById(R.id.yCount4);
-        yCount3 = (Spinner) findViewById(R.id.yCount3);
-        yCount2 = (Spinner) findViewById(R.id.yCount2);
-        yCount1 = (Spinner) findViewById(R.id.yCount1);
-        binCount6 = (Spinner) findViewById(R.id.binCount6);
-        binCount5 = (Spinner) findViewById(R.id.binCount5);
-        binCount4 = (Spinner) findViewById(R.id.binCount4);
-        binCount3 = (Spinner) findViewById(R.id.binCount3);
-        binCount2 = (Spinner) findViewById(R.id.binCount2);
-        binCount1 = (Spinner) findViewById(R.id.binCount1);
 
         // End Game
         teamNotes = (EditText) findViewById(R.id.notes);
@@ -745,24 +675,13 @@ public class MatchActivity extends Activity implements OnClickListener
         bins_step_add.setOnClickListener(this);
 
         // Tele-Op
-        addLf.setOnClickListener(this);
-        addLBin.setOnClickListener(this);
-        gAdd6.setOnClickListener(this);
-        gAdd5.setOnClickListener(this);
-        gAdd4.setOnClickListener(this);
-        gAdd3.setOnClickListener(this);
-        gAdd2.setOnClickListener(this);
-        gAdd1.setOnClickListener(this);
-        yAdd4.setOnClickListener(this);
-        yAdd3.setOnClickListener(this);
-        yAdd2.setOnClickListener(this);
-        yAdd1.setOnClickListener(this);
-        binAdd6.setOnClickListener(this);
-        binAdd5.setOnClickListener(this);
-        binAdd4.setOnClickListener(this);
-        binAdd3.setOnClickListener(this);
-        binAdd2.setOnClickListener(this);
-        binAdd1.setOnClickListener(this);
+
+        addStacked.setOnClickListener(this);
+        addHTote.setOnClickListener(this);
+        addNumCans.setOnClickListener(this);
+        addHCan.setOnClickListener(this);
+        addCoop.setOnClickListener(this);
+
 
         // End Game
         commonNotes.setOnItemSelectedListener(new NotesSelectedListener());

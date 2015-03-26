@@ -11,10 +11,13 @@
     <string name="yAdd3"/>
     <string name="yAdd4"/>
     
-    
-    
-    
-    
+    <string name="addStacked"/>
+    <string name="addHTote"/>
+    <string name="addNumCans"/>
+    <string name="addHCan"/>
+    <string name="addCoop"/>
+
+
     
     <string name="yCount1"/>
     <string name="yCount2"/>

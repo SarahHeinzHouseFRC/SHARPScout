@@ -116,6 +116,8 @@ public final class FRCScoutingContract
 
     public static abstract class SCOUT_PIT_DATA_2015_Entry implements BaseColumns
     {
+
+
         public static final String TABLE_NAME = "scout_pit_data_2015";
         public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_TEAM_ID = "team_id";
@@ -127,8 +129,14 @@ public final class FRCScoutingContract
         public static final String COLUMN_NAME_LOAD_LITTER = "load_litter";
         public static final String COLUMN_NAME_STACK_TOTE_HEIGHT = "stack_tote_height";
         public static final String COLUMN_NAME_STACK_BIN_HEIGHT = "stack_bin_height";
-        public static final String COLUMN_NAME_COOP_TOTES = "coop_totes";
         public static final String COLUMN_NAME_COOP_STACK_HEIGHT = "coop_stack_height";
+
+        public static final String COLUMN_NAME_STACKED_COUNT = "stacked_count";
+        public static final String COLUMN_NAME_HIGHEST_TOTE = "highest_tote";
+        public static final String COLUMN_NAME_CANS_COUNT = "cans_count";
+        public static final String COLUMN_NAME_HIGHEST_CAN = "highest_can";
+        public static final String COLUMN_NAME_COOP_TOTES = "coop_totes";
+
         public static final String COLUMN_NAME_MOVE_AUTO = "move_auto";
         public static final String COLUMN_NAME_AUTO_BIN_SCORE = "auto_bin_score";
         public static final String COLUMN_NAME_AUTO_TOTE_SCORE = "auto_tote_score";

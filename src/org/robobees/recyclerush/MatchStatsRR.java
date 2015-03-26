@@ -135,9 +135,6 @@ public class MatchStatsRR extends MatchStatsStruct
         auto_step_bin = c
                 .getShort(c
                         .getColumnIndexOrThrow(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_AUTO_STEP_BIN));
-
-
-
         bin_litter = c
                 .getShort(c
                         .getColumnIndexOrThrow(FACT_MATCH_DATA_2015_Entry.COLUMN_NAME_BIN_LITTER));

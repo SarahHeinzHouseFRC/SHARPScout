@@ -3,7 +3,7 @@
 
 	<string name="waiting">Waiting for match to start</string>
 	<string name="match_label">Recording match data</string>
-	<string name="app_name">FRC Scouting</string>
+	<string name="app_name">SHARPScout</string>
 	<string name="pits_label">Pit Data Entry</string>
 
 	<string-array name="autoSync">

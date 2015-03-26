@@ -73,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:baselineAligned="false"
                 android:gravity="center"
-                android:orientation="horizontal" >
+                android:orientation="horizontal">
 
                 <LinearLayout
                     android:layout_width="fill_parent"
@@ -109,7 +109,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Bins scored"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="15sp" />
                 </LinearLayout>
 
@@ -209,7 +209,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Bins from step"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="15sp" />
                 </LinearLayout>
                 <!-- Bins from step -->
@@ -244,7 +244,7 @@
                         android:layout_width="67dp"
                         android:layout_height="wrap_content"
                         android:text="Litter in landfill"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="15sp" />
 
                     <Button
@@ -298,7 +298,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Litter in bins"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="15sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -328,7 +328,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="6"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="20sp" />
 
                     <TextView
@@ -338,7 +338,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="5"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="20sp" />
 
                     <TextView
@@ -348,7 +348,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="4"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="20sp" />
 
                     <TextView
@@ -358,7 +358,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="3"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="20sp" />
 
                     <TextView
@@ -368,7 +368,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="2"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="20sp" />
 
                     <TextView
@@ -378,7 +378,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="1"
-                        android:textColor="#FFFFFF"
+                        android:textColor="#000000"
                         android:textSize="20sp" />
 
                     <View

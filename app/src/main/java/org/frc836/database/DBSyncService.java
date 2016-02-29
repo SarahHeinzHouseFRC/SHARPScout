@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import android.util.Log;
 import org.frc836.database.FRCScoutingContract.*;
 import org.growingstems.scouting.DashboardActivity;
 import org.growingstems.scouting.Prefs;
@@ -390,6 +391,8 @@ public class DBSyncService extends Service {
 		}
 
 		public void onError(Exception e) {
+			Log.e("SyncCallback", e.toString());
+
 			if (!running)
 				return;
 			if (syncForced) {
@@ -423,6 +426,8 @@ public class DBSyncService extends Service {
 		}
 
 		public void onError(Exception e) {
+			Log.e("ChangeResponseCallback", e.toString());
+
 			if (!running)
 				return;
 			if (syncForced) {

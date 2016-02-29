@@ -555,8 +555,7 @@ public class DB {
 
                     projection[0] = PitStats.COLUMN_NAME_TEAM_ID;
 
-                    if (c != null)
-                        c.close();
+                    c.close();
 
                     if (eventName == null) {
 

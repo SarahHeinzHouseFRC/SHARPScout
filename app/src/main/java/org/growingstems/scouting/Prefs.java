@@ -18,6 +18,7 @@ package org.growingstems.scouting;
 
 import java.util.List;
 
+import android.util.Log;
 import org.frc836.database.DB;
 import org.frc836.database.DBSyncService;
 import org.frc836.database.DBSyncService.LocalBinder;
@@ -53,7 +54,7 @@ public class Prefs extends PreferenceActivity {
 
     private ListPreference eventP;
 
-    private static final String URL = "https://robobees.org/scouting.php";
+    private static final String URL = "http://scout.omenien.com/";
 
     private DB db;
 
@@ -170,6 +171,8 @@ public class Prefs extends PreferenceActivity {
         }
 
         public void onResponse(HttpRequestInfo resp) {
+            Log.i("PasswordCallback", resp.getResponseString());
+
             Toast toast;
             try {
                 if (resp.getResponseString().contains("success")) {
@@ -191,6 +194,8 @@ public class Prefs extends PreferenceActivity {
         }
 
         public void onError(Exception e) {
+            Log.e("PasswordCallback", e.toString());
+
             Toast toast = Toast.makeText(getBaseContext(),
                     "Cannot connect to Server", Toast.LENGTH_SHORT);
             toast.show();
@@ -206,7 +211,7 @@ public class Prefs extends PreferenceActivity {
         String ret = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString("databaseURLPref", URL);
         if (ret.length() > 0 && !ret.contains("://")) {
-            ret = "https://" + ret;
+            ret = "http://" + ret;
         }
         return ret;
     }
@@ -215,7 +220,7 @@ public class Prefs extends PreferenceActivity {
         String ret = PreferenceManager.getDefaultSharedPreferences(context)
                 .getString("databaseURLPref", "");
         if (ret.length() > 0 && !ret.contains("://")) {
-            ret = "https://" + ret;
+            ret = "http://" + ret;
         }
         return ret;
     }

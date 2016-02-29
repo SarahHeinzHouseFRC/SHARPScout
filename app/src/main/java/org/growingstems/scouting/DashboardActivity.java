@@ -16,6 +16,7 @@
 
 package org.growingstems.scouting;
 
+import android.util.Log;
 import org.frc836.database.DB;
 import org.frc836.database.DBSyncService;
 import org.frc836.database.DBSyncService.LocalBinder;
@@ -215,11 +216,12 @@ public class DashboardActivity extends ScoutingMenuActivity {
 					showDialog(VERSION_DIALOG);
 				}
 			} catch (Exception e) {
-
+				Log.e("VersionCallback", e.toString());
 			}
 		}
 
 		public void onError(Exception e) {
+			Log.e("VersionCallback", e.toString());
 		}
 
 	}

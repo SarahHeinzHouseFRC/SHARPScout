@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.util.Log;
 import org.frc836.database.DB;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -93,6 +94,8 @@ public class MatchSchedule implements HttpCallback {
 	}
 
 	public void onError(Exception e) {
+		Log.e("UpdateSched", e.toString());
+
 		try {
 			if (toastComplete)
 				Toast.makeText(_parent, "Error Downloading Schedule",
@@ -104,7 +107,7 @@ public class MatchSchedule implements HttpCallback {
 				fos.close();
 			}
 		} catch (Exception es) {
-
+			Log.e("UpdateSched", es.toString());
 		}
 
 	}

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import android.util.Log;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
@@ -75,9 +76,14 @@ public class HttpUtils {
 						.add(new BasicNameValuePair(key, params.get(key)));
 			}
 
+			Log.i("POST", nameValuePairs.toString());
+
 			UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
 					nameValuePairs);
 			post.setEntity(entity);
+
+			Log.i("POST", post.toString());
+			Log.i("POST ENTITY", entity.toString());
 
 			HttpRequestInfo rinfo = new HttpRequestInfo(post, callback);
 			rinfo.setParams(params);
